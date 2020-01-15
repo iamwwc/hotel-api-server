@@ -28,13 +28,5 @@ public class Main extends AbstractVerticle {
     }
     private void routerInit() {
         Staff staff = new Staff(vertx,router);
-        // staff query
-        // /staff?uid=1
-        this.router.route(HttpMethod.GET, "/staff/").handler(staff::query);
-        // staff update
-        // /staff?uid=1
-        this.router.route(HttpMethod.POST,"/staff").handler(ctx -> {
-
-        });
     }
 }
