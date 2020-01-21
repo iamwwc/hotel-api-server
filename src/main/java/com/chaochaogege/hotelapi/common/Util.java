@@ -1,4 +1,4 @@
-package com.chaochaogege.serverjava.common;
+package com.chaochaogege.hotelapi.common;
 
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;

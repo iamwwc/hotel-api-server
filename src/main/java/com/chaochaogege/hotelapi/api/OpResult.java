@@ -1,4 +1,4 @@
-package com.chaochaogege.serverjava.api;
+package com.chaochaogege.hotelapi.api;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerResponse;
@@ -14,8 +14,8 @@ public class OpResult {
     public static int STATUS_FAILED_WRONG_POST_DATA = 8;
     public static int STATUS_FAILED_WRONG_UID = 16;
     public int code;
-    public JsonArray data;
-    public OpResult(int code, JsonArray data) {
+    public Object data;
+    public OpResult(int code, Object data) {
         this.code  = code;
         this.data = data;
     }
