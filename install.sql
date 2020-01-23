@@ -49,15 +49,15 @@ CREATE TABLE `staff` (
   `uid` int unsigned NOT NULL AUTO_INCREMENT,
   `role` varchar(20) NOT NULL,
   `email` varchar(255) NOT NULL,
-  `password` varchar(20) NOT NULL,
   `phone` varchar(11) NOT NULL,
-  PRIMARY KEY (`phone`),
+  `sex` varchar(10) DEFAULT NULL,
+  PRIMARY KEY (`uid`),
   KEY `uid` (`uid`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
 
 /*Data for the table `staff` */
 
-insert  into `staff`(`username`,`uid`,`role`,`email`,`password`,`phone`) values ('wwc',2,'administrator','15725508400','wwc','123456'),('iamwwc',1,'administrator','iamwwc@gmail.com','iampassword','15725508400');
+insert  into `staff`(`username`,`uid`,`role`,`email`,`phone`,`sex`) values ('iamwwc',1,'administrator','iamwwc@gmail.com','15725508400','male'),('wwc',2,'administrator','15725508400','123456','female'),('斗宗强者',3,'administrator','iam.wuweichao@gmail.com','110','male');
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;

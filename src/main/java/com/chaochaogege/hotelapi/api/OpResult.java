@@ -12,7 +12,8 @@ public class OpResult {
     public static int STATUS_FAILED_SQL = 2; //SQL 操作出错
     public static int STATUS_FAILED_NO_ENOUGH_ARGS = 4;
     public static int STATUS_FAILED_WRONG_POST_DATA = 8;
-    public static int STATUS_FAILED_WRONG_UID = 16;
+    public static int STATUS_FAILED_WRONG_ID = 16;
+    public static int STATUS_FAILED_RECORD_EXISTS = 32;
     public int code;
     public Object data;
     public OpResult(int code, Object data) {

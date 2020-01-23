@@ -36,13 +36,13 @@ public class Main extends AbstractVerticle {
                 .setPassword("wxlwuweichao")
                 .setDatabase("hotel");
         PoolOptions poolOptions = new PoolOptions().setMaxSize(5);
-        client = MySQLPool.pool(options,poolOptions);
+        client = MySQLPool.pool(vertx,options,poolOptions);
         this.routerInit();
         this.server.requestHandler(router);
         this.server.listen();
         startPromise.complete();
     }
     private void routerInit() {
-        new Staff(vertx,router);
+        new Staff(client,router);
     }
 }

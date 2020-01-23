@@ -1,5 +1,6 @@
 package com.chaochaogege.hotelapi.api;
 
+import com.chaochaogege.hotelapi.Main;
 import io.vertx.core.*;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientResponse;
@@ -19,7 +20,7 @@ import org.junit.runner.RunWith;
 import java.util.Arrays;
 
 @RunWith(VertxUnitRunner.class)
-public class StaffTest {
+public class TableTest {
     public static int PORT = 3030;
     Vertx vertx;
     HttpClient client;
@@ -33,7 +34,7 @@ public class StaffTest {
     }
 
     @Test
-    public void staffsTest(TestContext context) {
+    public void tableStaffTest(TestContext context) {
         Async async = context.async(4);
         String username = "斗宗强者";
         String newUserName = "斗圣强者";
@@ -103,7 +104,10 @@ public class StaffTest {
                         }
                         context.fail();
                     });
-                })));
+                }))).otherwise(v -> {
+                    v.printStackTrace();
+                    return null;
+        });
     }
 
     @After
@@ -111,19 +115,7 @@ public class StaffTest {
         vertx.close();
     }
 
-    public static class TestVerticle extends AbstractVerticle {
-        @Override
-        public void start(Promise<Void> startPromise) {
-            Router router = Router.router(vertx);
-            router.route().handler(BodyHandler.create());
-            new Staff(vertx, router);
-            vertx.createHttpServer().requestHandler(router).listen(PORT, "127.0.0.1", asyncResult -> {
-                if (asyncResult.succeeded()) {
-                    startPromise.complete();
-                    return;
-                }
-                startPromise.fail(asyncResult.cause());
-            });
-        }
+    public static class TestVerticle extends Main {
+
     }
 }
