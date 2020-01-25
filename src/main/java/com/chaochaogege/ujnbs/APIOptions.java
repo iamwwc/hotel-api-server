@@ -19,7 +19,7 @@ public class APIOptions {
 
     /**
      * 用于内部使用的MysqlConnectOptions
-     * @return
+     * @return MysqlConnectOptions
      */
     public MySQLConnectOptions getSqlOptions() {
         return this.options;
@@ -29,7 +29,7 @@ public class APIOptions {
      * mysql 数据库地址
      * 默认为 localhost
      * @param host mysql IP 地址
-     * @return
+     * @return APIOptions(this)
      */
     public APIOptions setHost(String host) {
         options.setHost(host);
@@ -38,7 +38,7 @@ public class APIOptions {
 
     /**
      * @param port mysql 数据库端口 ，默认 3306
-     * @return
+     * @return APIOptions(this)
      */
     public APIOptions setPort(int port) {
         options.setPort(port);
@@ -48,7 +48,7 @@ public class APIOptions {
     /**
      *
      * @param user mysql 用户名，默认 root
-     * @return
+     * @return APIOptions(this)
      */
     public APIOptions setUser(String user) {
         options.setUser(user);
@@ -58,7 +58,7 @@ public class APIOptions {
     /**
      *
      * @param db mysql数据库名
-     * @return
+     * @return APIOptions(this)
      */
     public APIOptions setDatabase(String db) {
         options.setDatabase(db);
@@ -67,7 +67,7 @@ public class APIOptions {
 
     /**
      * @param pwd mysql 对应用户名的密码
-     * @return
+     * @return APIOptions(this)
      */
     public APIOptions setPassword(String pwd) {
         options.setPassword(pwd);
@@ -77,7 +77,7 @@ public class APIOptions {
     /**
      *
      * @param port API 监听端口
-     * @return
+     * @return APIOptions(this)
      */
     public APIOptions setListenPort(int port) {
         listenPort = port;

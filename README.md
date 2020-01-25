@@ -16,6 +16,18 @@
 
 这个库旨在让同学们编写最少的代码来完成CRUD，尽量做到一键操作，因而可定制化程度很低，不支持更多的灵活选项。
 
+#### 如何引入
+
+Maven
+
+```
+<dependency>
+  <groupId>com.chaochaogege</groupId>
+  <artifactId>ujnbsapi</artifactId>
+  <version>0.0.4</version>
+</dependency>
+```
+
 #### 实例
 
 ```java

@@ -36,7 +36,7 @@ public class APIGenerator {
 
     /**
      * 获取 Vertx 实例
-     * @return
+     * @return vertx 实例
      */
     public Vertx getVertx() {
         return this.api.vertx;
