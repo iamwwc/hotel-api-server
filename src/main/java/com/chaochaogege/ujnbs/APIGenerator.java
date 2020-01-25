@@ -21,6 +21,11 @@ import java.util.ArrayList;
 public class APIGenerator {
     private generator api;
 
+    /**
+     *
+     * @param apiOptions 你初始化的APIOptions 对象
+     * @param columns 包含全部需要生成CRUD API的表的集合
+     */
     public APIGenerator(APIOptions apiOptions, ArrayList<TableColumn> columns) {
         this.api = new generator(apiOptions, columns);
     }
@@ -29,6 +34,10 @@ public class APIGenerator {
         this.api.run();
     }
 
+    /**
+     * 获取 Vertx 实例
+     * @return
+     */
     public Vertx getVertx() {
         return this.api.vertx;
     }
