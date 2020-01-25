@@ -8,6 +8,7 @@ import io.vertx.mysqlclient.MySQLConnectOptions;
 public class APIOptions {
     private MySQLConnectOptions options = new MySQLConnectOptions();
     private int listenPort;
+    private boolean allowCORS = true;
     public APIOptions() {
         // default options
         options.setHost("localhost");
@@ -82,6 +83,23 @@ public class APIOptions {
     public APIOptions setListenPort(int port) {
         listenPort = port;
         return this;
+    }
+
+    /**
+     * 是否允许CORS，默认允许
+     * 当前，CORS只允许GET，POST，DELETE，且并不允许 Credentials
+     * @param allowed 允许
+     */
+    public void allowCORS(boolean allowed) {
+        this.allowCORS = allowed;
+    }
+
+    /**
+     *
+     * @return 是否允许CORS
+     */
+    public boolean isAllowCORS() {
+        return this.allowCORS;
     }
 
     /**

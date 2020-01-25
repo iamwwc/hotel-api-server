@@ -5,15 +5,19 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.mysqlclient.MySQLPool;
 import io.vertx.sqlclient.PoolOptions;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 
 /**
  * APIGenerator is a wrap of generator
@@ -22,9 +26,8 @@ public class APIGenerator {
     private generator api;
 
     /**
-     *
      * @param apiOptions 你初始化的APIOptions 对象
-     * @param columns 包含全部需要生成CRUD API的表的集合
+     * @param columns    包含全部需要生成CRUD API的表的集合
      */
     public APIGenerator(APIOptions apiOptions, ArrayList<TableColumn> columns) {
         this.api = new generator(apiOptions, columns);
@@ -36,6 +39,7 @@ public class APIGenerator {
 
     /**
      * 获取 Vertx 实例
+     *
      * @return vertx 实例
      */
     public Vertx getVertx() {
@@ -49,9 +53,9 @@ public class APIGenerator {
 }
 
 class generator extends AbstractVerticle {
-    private HttpServer server;
-    private Router router;
-    private MySQLPool client;
+    public HttpServer server;
+    public Router router;
+    public MySQLPool client;
     public Vertx vertx;
 
     public generator(APIOptions apiOptions, ArrayList<TableColumn> columns) {
@@ -61,6 +65,11 @@ class generator extends AbstractVerticle {
         this.server = vertx.createHttpServer(new HttpServerOptions().setPort(apiOptions.getListenPort()));
         this.router = Router.router(vertx);
         this.router.route().handler(BodyHandler.create());
+        if (apiOptions.isAllowCORS()) {
+            this.router.route()
+                    .handler(CorsHandler.create("*")
+                                .allowedMethods(new HashSet<>(Arrays.asList(HttpMethod.GET,HttpMethod.POST,HttpMethod.DELETE))));
+        }
         PoolOptions poolOptions = new PoolOptions().setMaxSize(5);
         client = MySQLPool.pool(vertx, apiOptions.getSqlOptions(), poolOptions);
         for (int idx = 0; idx < columns.size(); ++idx) {
