@@ -1,6 +1,6 @@
-package com.chaochaogege.hotelapi.common;
+package com.chaochaogege.ujnbs.common;
 
-import com.chaochaogege.hotelapi.api.OpResult;
+import com.chaochaogege.ujnbs.api.OpResult;
 import io.vertx.core.Handler;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -8,7 +8,6 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 
-import javax.swing.plaf.synth.SynthUI;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Objects;

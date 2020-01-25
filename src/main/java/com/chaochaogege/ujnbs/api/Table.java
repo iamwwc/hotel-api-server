@@ -1,6 +1,6 @@
-package com.chaochaogege.hotelapi.api;
+package com.chaochaogege.ujnbs.api;
 
-import com.chaochaogege.hotelapi.common.Util;
+import com.chaochaogege.ujnbs.common.Util;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
@@ -15,9 +15,8 @@ import io.vertx.sqlclient.Tuple;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Objects;
 
-import static com.chaochaogege.hotelapi.common.Util.*;
+import static com.chaochaogege.ujnbs.common.Util.*;
 
 public class Table {
     public String tableName;
@@ -60,7 +59,7 @@ public class Table {
     // 插入不需要传 id
     // 更新需要 id，也就是pk
     private String updateSqlGenerator(JsonObject obj, ArrayList<Object> array) {
-        String set = columns.stream().reduce("",(prev,next) -> {
+        String set = columnsWithoutPK.stream().reduce("",(prev,next) -> {
             Object v = obj.getValue(next);
             array.add(v);
             return String.format("%s %s=?",prev,next);
@@ -105,7 +104,7 @@ public class Table {
             OpResult.failedDirectlyWithCause(context.response(),OpResult.STATUS_FAILED_WRONG_ID,"wrong uid");
             return;
         }
-        client.preparedQuery(QUERY_RECORD_SQL, Tuple.of(uid), asyncResult -> {
+        client.preparedQuery(QUERY_RECORD_SQL, Tuple.wrap(uid), asyncResult -> {
             if (!asyncResult.succeeded()) {
                 OpResult.failedDirectlyWithCause(context.response(),OpResult.STATUS_FAILED_SQL,asyncResult.cause());
                 return;
@@ -118,13 +117,13 @@ public class Table {
 
     public void update(RoutingContext context){
         String baseUpdate = "update %s set %s where %s=?";
-        JsonObject obj = context.getBodyAsJson();
+        JsonObject obj = context.getBodyAsJson().getJsonObject("data");
         ArrayList<Object> array = new ArrayList<>();
         String sql = updateSqlGenerator(obj,array);
         String id = parseIdFromPath(context.request().path());
         array.add(id);
         String execSql = String.format(baseUpdate,tableName,sql,primaryKey);
-        client.preparedQuery(execSql, Tuple.of(array.toArray()),sqlResultAsyncResult -> {
+        client.preparedQuery(execSql, Tuple.wrap(array.toArray()),sqlResultAsyncResult -> {
             if(!sqlResultAsyncResult.succeeded()) {
                 OpResult.failedDirectlyWithCause(context.response(),OpResult.STATUS_FAILED_SQL, sqlResultAsyncResult.cause());
             }
@@ -146,9 +145,10 @@ public class Table {
             OpResult.failedDirectlyWithCause(context.response(),OpResult.STATUS_FAILED_WRONG_POST_DATA,e.toString());
             return;
         }
-        client.preparedQuery(sql,Tuple.of(arrayList.toArray()),rowSetAsyncResult -> {
+        client.preparedQuery(sql,Tuple.wrap(arrayList.toArray()),rowSetAsyncResult -> {
             if (!rowSetAsyncResult.succeeded()){
                 OpResult.failedDirectlyWithCause(context.response(),OpResult.STATUS_FAILED_SQL,rowSetAsyncResult.cause());
+                return;
             }
             RowSet<Row> rows = rowSetAsyncResult.result();
             long lastId = rows.property(MySQLClient.LAST_INSERTED_ID);
@@ -160,7 +160,7 @@ public class Table {
         String path = context.request().path();
         String sql;
         if (path.endsWith("/"+tableName) || path.endsWith(tableName + "/")) {
-            sql = "delete * from " + tableName;
+            sql = "delete from " + tableName;
             client.preparedQuery(sql,rowSetAsyncResult -> {
                 if (!rowSetAsyncResult.succeeded()) {
                     OpResult.failedDirectlyWithCause(context.response(),OpResult.STATUS_FAILED_SQL,rowSetAsyncResult.cause());
@@ -176,7 +176,7 @@ public class Table {
             return;
         }
         sql = String.format("delete from %s where %s=?",tableName,primaryKey);
-        client.preparedQuery(sql,Tuple.of(id),rowSetAsyncResult -> {
+        client.preparedQuery(sql,Tuple.wrap(id),rowSetAsyncResult -> {
             if (!rowSetAsyncResult.succeeded()) {
                 OpResult.failedDirectlyWithCause(context.response(),OpResult.STATUS_FAILED_SQL,rowSetAsyncResult.cause());
                 return;

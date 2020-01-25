@@ -1,4 +1,4 @@
-package com.chaochaogege.hotelapi.api;
+package com.chaochaogege.ujnbs.api;
 
 public class ApiException extends Exception {
     private String cause;

@@ -1,6 +1,8 @@
-package com.chaochaogege.hotelapi.api;
+package com.chaochaogege.ujnbs.api;
 
-import com.chaochaogege.hotelapi.Main;
+import com.chaochaogege.ujnbs.APIGenerator;
+import com.chaochaogege.ujnbs.APIOptions;
+import com.chaochaogege.ujnbs.TableColumn;
 import io.vertx.core.*;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.http.HttpClientResponse;
@@ -10,32 +12,43 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.handler.BodyHandler;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
+//如下测试需存在mysql，否则test fail
 @RunWith(VertxUnitRunner.class)
 public class TableTest {
+    private static Logger logger = LoggerFactory.getLogger(TableTest.class.getName());
     public static int PORT = 3030;
     Vertx vertx;
     HttpClient client;
 
     @Before
     public void before(TestContext context) {
-        vertx = Vertx.vertx(new VertxOptions().setBlockedThreadCheckInterval(5000));
+        vertx = Vertx.vertx(new VertxOptions().setBlockedThreadCheckInterval(Integer.MAX_VALUE));
         client = vertx.createHttpClient();
-        Async async = context.async();
-        vertx.deployVerticle(TestVerticle.class.getName(), context.asyncAssertSuccess(event -> async.complete()));
+        APIOptions options = new APIOptions().setHost("localhost")
+                .setDatabase("hotel")
+                .setPort(3306)
+                .setUser("root")
+                .setPassword("wxlwuweichao");
+
+        ArrayList<TableColumn> columns = new ArrayList<>();
+        TableColumn table1 = new TableColumn("staff", "uid", new ArrayList<>(Arrays.asList("username", "uid", "role", "email", "phone", "sex")));
+        columns.add(table1);
+        new APIGenerator(options, columns).run();
     }
 
     @Test
     public void tableStaffTest(TestContext context) {
-        Async async = context.async(4);
+        Async async = context.async(99);
         String username = "斗宗强者";
         String newUserName = "斗圣强者";
         // insert test
@@ -57,18 +70,12 @@ public class TableTest {
             response.bodyHandler(b -> {
                 JsonObject o = b.toJsonObject();
                 context.assertTrue(o.containsKey("code") && ((o.getInteger("code") & OpResult.STATUS_SUCCEED) == 1));
-                int uid = o.getJsonObject("data").getInteger("uid");
-                p.complete(uid);
+                int lastId = o.getJsonObject("data").getInteger("lastId");
+                p.complete(lastId);
                 async.countDown();
             });
             return p.future();
-        }).compose(uid -> {
-            // 这里要注意顺序，虽然insert在query之前，但由于是async，并不能保证顺序，需要使用future来控制顺序
-            // https://vertx.io/docs/guide-for-java-devs/#_testing_vert_x_code
-            // 刚才查了下，future 有 compose，类似js的Promise.resolve().then()方法
-            // Future#setHandler 会在 future为 complete 时调用，并不等同于 then()
-
-            // query test
+        }).compose(lastId -> {
             Handler<HttpClientResponse> handler = httpClientResponse -> {
                 httpClientResponse.bodyHandler(body -> {
                     JsonObject map = (JsonObject) Json.decodeValue(body);
@@ -78,44 +85,65 @@ public class TableTest {
             };
             Future<Void> r1 = client.get(PORT, "127.0.0.1", "/staff").setHandler(context.asyncAssertSuccess(handler)).end();
             Future<Void> r2 = client.get(PORT, "localhost", "/staff/").setHandler(context.asyncAssertSuccess(handler)).end();
-            Future<Void> r3 = client.get(PORT, "localhost", "/staff/" + uid).setHandler(context.asyncAssertSuccess(response -> {
-                response.handler(b -> {
+            Future<Void> r3 = client.get(PORT, "localhost", "/staff/" + lastId).setHandler(context.asyncAssertSuccess(response -> {
+                response.bodyHandler(b -> {
                     JsonObject o = b.toJsonObject();
                     context.assertTrue((o.getInteger("code") & OpResult.STATUS_SUCCEED) == 1);
                     context.assertTrue(o.getJsonArray("data").getJsonObject(0).getString("username").equals(username));
                 });
             })).end();
-            return CompositeFuture.all(Arrays.asList(r1, r2, r3)).map(uid);
+            return CompositeFuture.all(Arrays.asList(r1, r2, r3)).map(lastId);
         }).compose(uid -> {
             // update test
             // 使用 uid 更新 username
             data.put("username", newUserName);
-            // 这里改成setHandler试一下
-            return client.post(3030, "localhost", "/staff/" + uid).end(Json.encodeToBuffer(data)).setHandler(o1 -> async.countDown()).map(uid);
-        }).compose(uid -> client.delete(3030, "localhost", "/staff/" + uid).end())
-                .setHandler(o -> client.get(PORT, "localhost", "/staff").setHandler(context.asyncAssertSuccess(response -> {
-                    response.body().setHandler(body -> {
-                        if (body.succeeded()) {
-                            JsonObject obj = (JsonObject) Json.decodeValue(body.result());
+            Promise<Integer> p = Promise.promise();
+            client.post(3030, "localhost", "/staff/" + uid).setHandler(context.asyncAssertSuccess(o1 -> {
+                o1.bodyHandler(b -> {
+                    JsonObject o = b.toJsonObject();
+                    context.assertTrue((o.getInteger("code") & OpResult.STATUS_SUCCEED) == 1);
+                    logger.debug("Update username: {} completed", newUserName);
+                    async.countDown();
+                    p.complete(uid);
+                });
+            })).end(Json.encodeToBuffer(postData));
+            return p.future();
+        }).compose(uid -> {
+            Promise<Void> promise = Promise.promise();
+            client.delete(3030, "localhost", "/staff/" + uid).setHandler(r -> {
+                if (r.succeeded()) {
+                    HttpClientResponse response = r.result();
+                    response.bodyHandler(v -> promise.complete());
+                    return;
+                }
+                context.fail();
+            }).end();
+            return promise.future();
+        }).compose(o -> {
+            Promise<Void> promise = Promise.promise();
+            client.get(PORT, "localhost", "/staff").setHandler(asyncResult -> {
+                if (!asyncResult.succeeded()) context.fail();
+                HttpClientResponse response = asyncResult.result();
+                response.bodyHandler(body -> {
+                            JsonObject obj = (JsonObject) Json.decodeValue(body);
                             if (obj.getInteger("code") == OpResult.STATUS_SUCCEED) {
-                                async.countDown();
+                                async.complete();
+                                promise.complete();
                                 return;
                             }
+                            context.fail();
                         }
-                        context.fail();
-                    });
-                }))).otherwise(v -> {
-                    v.printStackTrace();
-                    return null;
+                );
+            }).end();
+            return promise.future();
+        }).otherwise(v -> {
+            context.fail(v);
+            return null;
         });
     }
 
     @After
     public void after(TestContext context) {
         vertx.close();
-    }
-
-    public static class TestVerticle extends Main {
-
     }
 }

@@ -1,19 +1,18 @@
-package com.chaochaogege.hotelapi.api;
+package com.chaochaogege.ujnbs.api;
 
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class OpResult {
-    public static int STATUS_SUCCEED = 0;
-    public static int STATUS_FAILED = 1;
-    public static int STATUS_FAILED_SQL = 2; //SQL 操作出错
-    public static int STATUS_FAILED_NO_ENOUGH_ARGS = 4;
-    public static int STATUS_FAILED_WRONG_POST_DATA = 8;
-    public static int STATUS_FAILED_WRONG_ID = 16;
-    public static int STATUS_FAILED_RECORD_EXISTS = 32;
+    public static int STATUS_SUCCEED = 1;
+    public static int STATUS_FAILED = 2;
+    public static int STATUS_FAILED_SQL = 4; //SQL 操作出错
+    public static int STATUS_FAILED_NO_ENOUGH_ARGS = 8;
+    public static int STATUS_FAILED_WRONG_POST_DATA = 16;
+    public static int STATUS_FAILED_WRONG_ID = 32;
+    public static int STATUS_FAILED_RECORD_EXISTS = 64;
     public int code;
     public Object data;
     public OpResult(int code, Object data) {
@@ -37,6 +36,5 @@ public class OpResult {
     }
     public static void failedDirectlyWithCause(HttpServerResponse httpResponse, int code, Throwable cause){
         failedDirectlyWithCause(httpResponse,code,cause.toString());
-
     }
 }
