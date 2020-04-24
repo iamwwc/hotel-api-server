@@ -1,6 +1,8 @@
 package com.chaochaogege.ujnbs.api;
 
+import com.chaochaogege.ujnbs.APIOptions;
 import com.chaochaogege.ujnbs.common.Util;
+import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
@@ -21,6 +23,7 @@ import static com.chaochaogege.ujnbs.common.Util.*;
 public class Table {
     public String tableName;
     public String primaryKey;
+    private APIOptions options;
     private MySQLPool client;
     private Router router;
     private ArrayList<String> columns;
@@ -31,7 +34,8 @@ public class Table {
     public String INSERT_RECORD_SQL;
     public String DELETE_RECORD_SQL;
     public String DELETE_ALL_SQL;
-    public Table(MySQLPool client, Router router, String tableName, String primaryKey, ArrayList<String> columns) {
+    public Table(APIOptions options, MySQLPool client, Router router, String tableName, String primaryKey, ArrayList<String> columns) {
+        this.options = options;
         this.client = client;
         this.router = router;
         this.tableName = tableName;
@@ -41,7 +45,6 @@ public class Table {
         int idx = columns.indexOf(primaryKey);
         columnsWithoutPK.addAll(columns);
         columnsWithoutPK.remove(idx);
-
         // router init
         router.routeWithRegex(HttpMethod.GET,String.format("/%s(?:/?|/\\d*)$",tableName)).handler(this::query);
         router.routeWithRegex(HttpMethod.POST,String.format("/%s/?$",tableName)).handler(isNotNullBody(this::insert));
@@ -86,6 +89,24 @@ public class Table {
         HttpServerRequest request = context.request();
         String path = request.path();
         if (path.endsWith("/" + tableName) || path.endsWith(tableName + "/")) {
+            MultiMap params = request.params();
+            String col = params.get("columns");
+            if ("true".equals(col) || "".equals(col)){
+                // query columns
+                String db = this.options.getDataBaseName();
+                client.query(String.format("select column_name from information_schema.columns where table_schema=\"%s\" and table_name=\"%s\"",db,this.tableName),asyncResult -> {
+                    OpResult result;
+                    if (asyncResult.succeeded()) {
+                        RowSet set = asyncResult.result();
+                        JsonArray array = Util.rowToArray(set);
+                        result = new OpResult(OpResult.STATUS_SUCCEED,array);
+                    }else {
+                        result = new OpResult(OpResult.STATUS_FAILED_SQL | OpResult.STATUS_FAILED,asyncResult.cause());
+                    }
+                    context.end(result.encode());
+                });
+                return;
+            }
             client.query(QUERY_ALL_SQL,asyncResult -> {
                 OpResult result ;
                 if (asyncResult.succeeded()) {

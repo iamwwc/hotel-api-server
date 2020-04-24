@@ -68,13 +68,15 @@ class generator extends AbstractVerticle {
         if (apiOptions.isAllowCORS()) {
             this.router.route()
                     .handler(CorsHandler.create("*")
-                                .allowedMethods(new HashSet<>(Arrays.asList(HttpMethod.GET,HttpMethod.POST,HttpMethod.DELETE))));
+                                .allowedMethods(new HashSet<>(Arrays.asList(HttpMethod.GET,HttpMethod.POST,HttpMethod.DELETE)))
+                                .allowCredentials(true)
+                                .allowedHeaders(new HashSet<>(Arrays.asList("Content-Type",""))));
         }
         PoolOptions poolOptions = new PoolOptions().setMaxSize(5);
         client = MySQLPool.pool(vertx, apiOptions.getSqlOptions(), poolOptions);
         for (int idx = 0; idx < columns.size(); ++idx) {
             TableColumn t = columns.get(idx);
-            new Table(client, router, t.tableName, t.primaryKey, t.columns);
+            new Table(apiOptions, client, router, t.tableName, t.primaryKey, t.columns);
         }
     }
 

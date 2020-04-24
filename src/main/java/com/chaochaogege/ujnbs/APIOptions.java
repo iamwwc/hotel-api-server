@@ -9,6 +9,7 @@ public class APIOptions {
     private MySQLConnectOptions options = new MySQLConnectOptions();
     private int listenPort;
     private boolean allowCORS = true;
+    private String db;
     public APIOptions() {
         // default options
         options.setHost("localhost");
@@ -62,8 +63,17 @@ public class APIOptions {
      * @return APIOptions(this)
      */
     public APIOptions setDatabase(String db) {
+        this.db = db;
         options.setDatabase(db);
         return this;
+    }
+
+    /**
+     * 数据库名
+     * @return database name
+     */
+    public String getDataBaseName() {
+        return this.db;
     }
 
     /**
