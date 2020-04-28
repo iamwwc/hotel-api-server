@@ -8,9 +8,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.sqlclient.Row;
 import io.vertx.sqlclient.RowSet;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 
 public class Util {
     public static JsonArray reorderFromJson(ArrayList<String> array, JsonObject object) {
@@ -72,6 +70,32 @@ public class Util {
     }
 
     public static boolean isValidID(String uid) {
-        return !"".equals(uid) && isInteger(uid);
+        String[] u = stringSplit(uid,7,11,15,19);
+        String uuid = String.join("-",u);
+        try {
+            UUID.fromString(uuid);
+        }catch (IllegalArgumentException e) {
+            return false;
+        }
+        return true;
+    }
+
+    public static String[] stringSplit(String s, int ...idx) {
+        Arrays.sort(idx);
+        int last = 0;
+        String[] temp = new String[idx.length + 1];
+        for (int i = 0 ; i < idx.length ; i ++) {
+            temp[i] =  s.substring(last, idx[i] + 1);
+            last = idx[i] + 1;
+        }
+        temp[idx.length] = s.substring(last);
+        return temp;
+    }
+    public static String uuid() {
+        return UUID.randomUUID().toString().replace("-","");
+    }
+
+    public static void main(String[] args) {
+        assert isValidID(uuid());
     }
 }

@@ -41,7 +41,7 @@ public class TableTest {
                 .setPassword("wxlwuweichao");
 
         ArrayList<TableColumn> columns = new ArrayList<>();
-        TableColumn table1 = new TableColumn("staff", "uid", new ArrayList<>(Arrays.asList("username", "uid", "role", "email", "phone", "sex")));
+        TableColumn table1 = new TableColumn("staff", "id", new ArrayList<>(Arrays.asList("username", "id", "role", "email", "phone", "sex")));
         columns.add(table1);
         new APIGenerator(options, columns).run();
     }
@@ -66,11 +66,11 @@ public class TableTest {
         Promise<HttpClientResponse> orderedHandler = Promise.promise();
         client.post(insertPostOptions).setHandler(orderedHandler).end(Json.encodeToBuffer(postData));
         orderedHandler.future().compose(response -> {
-            Promise<Integer> p = Promise.promise();
+            Promise<String> p = Promise.promise();
             response.bodyHandler(b -> {
                 JsonObject o = b.toJsonObject();
                 context.assertTrue(o.containsKey("code") && ((o.getInteger("code") & OpResult.STATUS_SUCCEED) == 1));
-                int lastId = o.getJsonObject("data").getInteger("lastId");
+                String lastId = o.getJsonObject("data").getString("lastId");
                 p.complete(lastId);
                 async.countDown();
             });
@@ -97,7 +97,7 @@ public class TableTest {
             // update test
             // 使用 uid 更新 username
             data.put("username", newUserName);
-            Promise<Integer> p = Promise.promise();
+            Promise<String> p = Promise.promise();
             client.post(3030, "localhost", "/staff/" + uid).setHandler(context.asyncAssertSuccess(o1 -> {
                 o1.bodyHandler(b -> {
                     JsonObject o = b.toJsonObject();

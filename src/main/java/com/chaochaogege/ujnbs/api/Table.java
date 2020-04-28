@@ -46,17 +46,17 @@ public class Table {
         columnsWithoutPK.addAll(columns);
         columnsWithoutPK.remove(idx);
         // router init
-        router.routeWithRegex(HttpMethod.GET,String.format("/%s(?:/?|/\\d*)$",tableName)).handler(this::query);
+        router.routeWithRegex(HttpMethod.GET,String.format("/%s(?:/?|/\\w*)$",tableName)).handler(this::query);
         router.routeWithRegex(HttpMethod.POST,String.format("/%s/?$",tableName)).handler(isNotNullBody(this::insert));
-        router.routeWithRegex(HttpMethod.POST,String.format("/%s/\\d+$",tableName)).handler(isValidIdHandler(isNotNullBody(this::update)));
-        router.routeWithRegex(HttpMethod.DELETE,String.format("/%s(?:/?|/\\d*)$",tableName)).handler(this::delete);
+        router.routeWithRegex(HttpMethod.POST,String.format("/%s/\\w+$",tableName)).handler(isValidIdHandler(isNotNullBody(this::update)));
+        router.routeWithRegex(HttpMethod.DELETE,String.format("/%s(?:/?|/\\w*)$",tableName)).handler(this::delete);
         sqlGenerator();
     }
 
     private void sqlGenerator() {
         QUERY_ALL_SQL = String.format("select * from %s",this.tableName);
         QUERY_RECORD_SQL = String.format("select * from %s where %s = ?",this.tableName,this.primaryKey);
-        UPDATE_RECORD_SQL = String.format("insert into %s(%s) values()",tableName,String.join(",",columnsWithoutPK));
+        UPDATE_RECORD_SQL = String.format("insert into %s(%s) values()",tableName,String.join(",",columns));
     }
 
     // 插入不需要传 id
@@ -72,17 +72,17 @@ public class Table {
 
     private String insertSqlGenerator(JsonObject obj, ArrayList<Object> arrayList) throws ApiException {
         String baseSql = "insert into %s(%s) values(%s)";
-        int length = columnsWithoutPK.size();
+        int length = columns.size();
         for(int idx = 0 ; idx < length; ++idx) {
-            Object v = obj.getValue(columnsWithoutPK.get(idx));
+            Object v = obj.getValue(columns.get(idx));
             if (v == null) {
                 throw new ApiException(String.format("Not enough arguments, %d needed, but %d found",length,idx + 1));
             }
             arrayList.add(v);
         }
-        String[] placeHolders = new String[columnsWithoutPK.size()];
+        String[] placeHolders = new String[columns.size()];
         Arrays.fill(placeHolders,"?");
-        return String.format(baseSql,tableName,String.join(",",columnsWithoutPK),String.join(",",placeHolders));
+        return String.format(baseSql,tableName,String.join(",",columns),String.join(",",placeHolders));
     }
 
     public void query(RoutingContext context) {
@@ -120,12 +120,12 @@ public class Table {
             });
             return;
         }
-        String uid = Util.parseIdFromPath(path);
-        if (!Util.isValidID(uid)) {
+        String id = Util.parseIdFromPath(path);
+        if (!Util.isValidID(id)) {
             OpResult.failedDirectlyWithCause(context.response(),OpResult.STATUS_FAILED_WRONG_ID,"wrong uid");
             return;
         }
-        client.preparedQuery(QUERY_RECORD_SQL, Tuple.wrap(uid), asyncResult -> {
+        client.preparedQuery(QUERY_RECORD_SQL, Tuple.wrap(id), asyncResult -> {
             if (!asyncResult.succeeded()) {
                 OpResult.failedDirectlyWithCause(context.response(),OpResult.STATUS_FAILED_SQL,asyncResult.cause());
                 return;
@@ -155,9 +155,9 @@ public class Table {
     public  void insert(RoutingContext context){
         JsonObject obj = context.getBodyAsJson();
         JsonObject data = obj.getJsonObject("data");
-        // 即使有pk，也要删除
-        // insert 会忽略掉 pk
-        obj.remove(primaryKey);
+        // 使用重新生成的uuid
+        final String uuid = uuid();
+        data.put(primaryKey,uuid);
         ArrayList<Object> arrayList = new ArrayList<>();
         String sql = null;
         try {
@@ -171,9 +171,7 @@ public class Table {
                 OpResult.failedDirectlyWithCause(context.response(),OpResult.STATUS_FAILED_SQL,rowSetAsyncResult.cause());
                 return;
             }
-            RowSet<Row> rows = rowSetAsyncResult.result();
-            long lastId = rows.property(MySQLClient.LAST_INSERTED_ID);
-            context.response().end(new OpResult(OpResult.STATUS_SUCCEED,new JsonObject().put("lastId",lastId)).encode());
+            context.response().end(new OpResult(OpResult.STATUS_SUCCEED,new JsonObject().put("lastId",uuid)).encode());
         });
     }
 

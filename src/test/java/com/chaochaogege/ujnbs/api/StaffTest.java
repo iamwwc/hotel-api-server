@@ -19,7 +19,7 @@ public class StaffTest {
                 .setPassword("wxlwuweichao");
         // 每一个表对应一个 column
         // TableColumn
-        TableColumn column = new TableColumn("staff","uid",new ArrayList<>(Arrays.asList("username","email","phone","sex","uid","role")));
+        TableColumn column = new TableColumn("staff","id",new ArrayList<>(Arrays.asList("username","email","phone","sex","uid","role")));
         ArrayList<TableColumn> columns = new ArrayList<>();
         columns.add(column);
         new APIGenerator(apiOptions,columns).run();
