@@ -5,6 +5,8 @@ import com.chaochaogege.ujnbs.common.Util;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.impl.logging.Logger;
+import io.vertx.core.impl.logging.LoggerFactory;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
@@ -21,6 +23,7 @@ import java.util.Arrays;
 import static com.chaochaogege.ujnbs.common.Util.*;
 
 public class Table {
+    private static Logger logger = LoggerFactory.getLogger(Table.class);
     public String tableName;
     public String primaryKey;
     private APIOptions options;
@@ -46,6 +49,11 @@ public class Table {
         columnsWithoutPK.addAll(columns);
         columnsWithoutPK.remove(idx);
         // router init
+        router.route().handler(h -> {
+            HttpServerRequest req = h.request();
+            logger.debug(String.format("Method: %s; Path: %s;",req.method().toString(),req.path()));
+            h.next();
+        });
         router.routeWithRegex(HttpMethod.GET,String.format("/%s(?:/?|/\\w*)$",tableName)).handler(this::query);
         router.routeWithRegex(HttpMethod.POST,String.format("/%s/?$",tableName)).handler(isNotNullBody(this::insert));
         router.routeWithRegex(HttpMethod.POST,String.format("/%s/\\w+$",tableName)).handler(isValidIdHandler(isNotNullBody(this::update)));
