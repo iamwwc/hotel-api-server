@@ -58,6 +58,7 @@ public class AuthProvider implements Handler<RoutingContext> {
         if(request.path().equals("/api/login")){
             ctx.response().addCookie(Cookie.cookie("jwt_token",this.sign()));
             ctx.end();
+            return;
         }
         Pattern pattern = Pattern.compile("jwt_token=([^;]+);?");
         Matcher m = pattern.matcher(cookies);
