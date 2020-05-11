@@ -10,6 +10,9 @@ public class APIOptions {
     private int listenPort;
     private boolean allowCORS = true;
     private String db;
+    private String secret;
+    private boolean mustLogin = false;
+
     public APIOptions() {
         // default options
         options.setHost("localhost");
@@ -118,5 +121,15 @@ public class APIOptions {
      */
     public int getListenPort() {
         return this.listenPort;
+    }
+    private void secretToken(String token ) {
+        this.secret = token;
+    }
+    public String secret() {
+        return this.secret;
+    }
+
+    public boolean mustLogin() {
+        return this.mustLogin;
     }
 }
