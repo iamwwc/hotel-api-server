@@ -129,7 +129,21 @@ public class APIOptions {
         return this.secret;
     }
 
+    /**
+     * 当前的登录状态
+     * 你不应该使用它
+     * @return
+     */
     public boolean mustLogin() {
         return this.mustLogin;
+    }
+
+    /**
+     * 是否启用登录
+     * 如果启用登录，则验证失败的请求将被重定向到 /login
+     * @param login
+     */
+    public void setLogin(boolean login) {
+        this.mustLogin = login;
     }
 }

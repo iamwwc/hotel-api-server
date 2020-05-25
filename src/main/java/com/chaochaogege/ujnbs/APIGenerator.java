@@ -4,7 +4,6 @@ import com.chaochaogege.ujnbs.api.Table;
 import io.vertx.core.*;
 import io.vertx.core.http.*;
 import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.mysqlclient.MySQLPool;
@@ -61,15 +60,14 @@ class generator extends AbstractVerticle {
         this.server = vertx.createHttpServer(new HttpServerOptions().setPort(apiOptions.getListenPort()));
         this.router = Router.router(vertx);
         this.router.route().handler(BodyHandler.create());
-        this.router.route().handler(ctx -> {
-            // path rewrite
-            String path = ctx.request().path();
-            if (path.endsWith("/")){
-                ctx.reroute(path.substring(0,path.length() - 2));
-                return;
-            }
-            ctx.next();
-        });
+//        this.router.route().handler(ctx -> {
+//            // path rewrite
+//            String path = ctx.request().path();
+//            if (path.endsWith("/")){
+//                ctx.reroute(path.substring(0,path.length() - 1));
+//            }
+////            ctx.next();
+//        });
         if (apiOptions.isAllowCORS()) {
             this.router.route()
                     .handler(CorsHandler.create("*")
@@ -80,7 +78,7 @@ class generator extends AbstractVerticle {
         PoolOptions poolOptions = new PoolOptions().setMaxSize(5);
         client = MySQLPool.pool(vertx, apiOptions.getSqlOptions(), poolOptions);
         if(apiOptions.mustLogin()) {
-            this.router.route().handler(new AuthProvider(router));
+            this.router.route().handler(new AuthProvider(router, client));
         }
         for (int idx = 0; idx < columns.size(); ++idx) {
             TableColumn t = columns.get(idx);
