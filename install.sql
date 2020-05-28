@@ -16,29 +16,38 @@ CREATE DATABASE /*!32312 IF NOT EXISTS*/`hotel` /*!40100 DEFAULT CHARACTER SET u
 
 USE `hotel`;
 
-/*Table structure for table `rooms` */
+/*Table structure for table `consumer` */
 
-DROP TABLE IF EXISTS `rooms`;
+DROP TABLE IF EXISTS `consumer`;
 
-CREATE TABLE `rooms` (
-  `roomid` int unsigned NOT NULL AUTO_INCREMENT,
-  `roomtype` varchar(20) NOT NULL,
-  `typeid` int unsigned NOT NULL,
-  KEY `roomid` (`roomid`)
+CREATE TABLE `consumer` (
+  `id` varchar(32) NOT NULL,
+  `username` varchar(255) NOT NULL,
+  `phone` varchar(255) NOT NULL,
+  `roomnum` int NOT NULL,
+  `roomtypeid` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL COMMENT '房间类型',
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Data for the table `rooms` */
+/*Data for the table `consumer` */
 
-/*Table structure for table `roomstype` */
+insert  into `consumer`(`id`,`username`,`phone`,`roomnum`,`roomtypeid`) values ('6ec12c2f7ee146d383633b45aca09d18','iamwwc','',2,'大床房');
 
-DROP TABLE IF EXISTS `roomstype`;
+/*Table structure for table `room` */
 
-CREATE TABLE `roomstype` (
-  `typeid` int unsigned NOT NULL,
-  `info` varchar(1000) NOT NULL
+DROP TABLE IF EXISTS `room`;
+
+CREATE TABLE `room` (
+  `roomtypeid` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `chairs` int NOT NULL,
+  `roomtype` varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci DEFAULT NULL,
+  `picurl` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`roomtypeid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-/*Data for the table `roomstype` */
+/*Data for the table `room` */
+
+insert  into `room`(`roomtypeid`,`chairs`,`roomtype`,`picurl`) values ('392e5225199648fab774bcd83eeb3629',1,'大床房','url');
 
 /*Table structure for table `staff` */
 
@@ -46,18 +55,28 @@ DROP TABLE IF EXISTS `staff`;
 
 CREATE TABLE `staff` (
   `username` varchar(255) NOT NULL,
-  `uid` int unsigned NOT NULL AUTO_INCREMENT,
-  `role` varchar(20) NOT NULL,
+  `id` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `email` varchar(255) NOT NULL,
   `phone` varchar(11) NOT NULL,
-  `sex` varchar(10) DEFAULT NULL,
-  PRIMARY KEY (`uid`),
-  KEY `uid` (`uid`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
+  PRIMARY KEY (`id`),
+  KEY `uid` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*Data for the table `staff` */
 
-insert  into `staff`(`username`,`uid`,`role`,`email`,`phone`,`sex`) values ('iamwwc',1,'administrator','iamwwc@gmail.com','15725508400','male'),('wwc',2,'administrator','15725508400','123456','female'),('斗宗强者',3,'administrator','iam.wuweichao@gmail.com','110','male');
+/*Table structure for table `users` */
+
+DROP TABLE IF EXISTS `users`;
+
+CREATE TABLE `users` (
+  `username` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  PRIMARY KEY (`username`,`password`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+/*Data for the table `users` */
+
+insert  into `users`(`username`,`password`) values ('iamwwc','123456');
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;

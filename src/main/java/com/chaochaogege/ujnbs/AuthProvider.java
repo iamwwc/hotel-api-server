@@ -7,6 +7,7 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.chaochaogege.ujnbs.api.OpResult;
 import com.chaochaogege.ujnbs.common.Util;
 import io.vertx.core.Handler;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
@@ -63,7 +64,7 @@ public class AuthProvider implements Handler<RoutingContext> {
     public void handle(RoutingContext ctx) {
         HttpServerRequest request = ctx.request();
         String cookies = request.headers().get("cookie");
-        if (request.path().equals("/api/login")) {
+        if (request.path().equals("/login")) {
             // ?username=iamwwc&password=mypassword
             String u = request.getParam("username");
             String p = request.getParam("password");
@@ -71,7 +72,7 @@ public class AuthProvider implements Handler<RoutingContext> {
             return;
         }
         if (cookies == null) {
-            ctx.redirect("/login");
+            OpResult.failedDirectlyWithCause(ctx.response(),OpResult.STATUS_FAILED_NEED_LOGIN ,"no user");
             // ctx.next()调用之后会往下继续处理，如果response.end被调用，那么不调用next则会直接返回
             return;
         }
@@ -82,13 +83,13 @@ public class AuthProvider implements Handler<RoutingContext> {
         if (m.find()) {
             String token = m.group(1);
             if (!this.verify(token)) {
-                ctx.redirect("/login");
+                OpResult.failedDirectlyWithCause(ctx.response(),OpResult.STATUS_FAILED_NEED_LOGIN ,"no user");
                 return;
             }
             ctx.next();
             return;
         }
-        ctx.redirect("/login");
+        OpResult.failedDirectlyWithCause(ctx.response(),OpResult.STATUS_FAILED_NEED_LOGIN ,"no user");
     }
     private void verifyUser(RoutingContext ctx, String username, String password) {
         this.client.preparedQuery("select username, password from users where username=?", Tuple.of(username),asyncResult -> {
@@ -100,13 +101,19 @@ public class AuthProvider implements Handler<RoutingContext> {
                         JsonObject m = (JsonObject)o;
                         String p = m.getString("password");
                         if (!"".equals(password) && password.equals(p)) {
-                            ctx.response().addCookie(Cookie.cookie("jwt_token", this.sign()));
-                            ctx.end();
+                            String token = this.sign();
+                            Cookie c = Cookie.cookie("jwt_token", token);
+                            c.setPath("/");
+                            c.setHttpOnly(false);
+                            c.setMaxAge(99999);
+                            ctx.response().addCookie(c);
+                            Buffer sent = new OpResult(OpResult.STATUS_SUCCEED, new JsonObject().put("jwt_token",token)).encode();
+                            ctx.response().end(sent);
                             return;
                         }
                     }
                 }
-                OpResult.failedDirectlyWithCause(ctx.response(),OpResult.STATUS_FAILED,"no user");
+                OpResult.failedDirectlyWithCause(ctx.response(),OpResult.STATUS_FAILED_NEED_LOGIN ,"no user");
             }
         });
     }

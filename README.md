@@ -27,6 +27,13 @@ Maven
   <version>0.0.5</version>
 </dependency>
 ```
+#### 安装到本地
+
+mvn install -Dmaven.test.skip=true
+
+####上传到maven
+
+mvn deploy -P release -Dmaven.test.skip=true
 
 #### 实例
 

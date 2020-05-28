@@ -13,6 +13,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Properties;
 
 /**
  * APIGenerator is a wrap of generator
@@ -42,8 +43,16 @@ public class APIGenerator {
     }
 
     public static void main(String[] args) {
-        // Do nothing
-        // used as main entry point in maven-assembly-plugin
+        Properties p = new Properties();
+        APIOptions apiOptions = new APIOptions().setDatabase("hotel")
+                .setPassword("wxlwuweichao");
+        apiOptions.allowCORS(true);
+        apiOptions.setLogin(true);
+        TableColumn column = new TableColumn("staff","id",new ArrayList<>(Arrays.asList("username","email","phone","id")));
+        TableColumn column_consumer = new TableColumn("consumer","id",new ArrayList<>(Arrays.asList("username","roomnum","phone","roomtypeid","id")));
+        TableColumn column_room = new TableColumn("room","roomtypeid",new ArrayList<>(Arrays.asList("roomtypeid","chairs","roomtype","picurl")));
+        ArrayList<TableColumn> columns = new ArrayList<>(Arrays.asList(column, column_consumer,column_room));
+        new APIGenerator(apiOptions,columns).run();
     }
 }
 

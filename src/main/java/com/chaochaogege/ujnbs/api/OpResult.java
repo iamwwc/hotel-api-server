@@ -7,12 +7,13 @@ import io.vertx.core.json.JsonObject;
 
 public class OpResult {
     public static int STATUS_SUCCEED = 1;
-    public static int STATUS_FAILED = 2;
-    public static int STATUS_FAILED_SQL = 4; //SQL 操作出错
-    public static int STATUS_FAILED_NO_ENOUGH_ARGS = 8;
-    public static int STATUS_FAILED_WRONG_POST_DATA = 16;
-    public static int STATUS_FAILED_WRONG_ID = 32;
-    public static int STATUS_FAILED_RECORD_EXISTS = 64;
+    public static int STATUS_FAILED = 1 << 1;
+    public static int STATUS_FAILED_SQL = 1 << 2; //SQL 操作出错
+    public static int STATUS_FAILED_NO_ENOUGH_ARGS = 1 << 3;
+    public static int STATUS_FAILED_WRONG_POST_DATA = 1 << 4;
+    public static int STATUS_FAILED_WRONG_ID = 1 << 5;
+    public static int STATUS_FAILED_RECORD_EXISTS = 1 << 6;
+    public static int STATUS_FAILED_NEED_LOGIN = 1 << 7;
     public int code;
     public Object data;
     public OpResult(int code, Object data) {
